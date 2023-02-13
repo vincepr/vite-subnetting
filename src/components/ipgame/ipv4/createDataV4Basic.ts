@@ -87,66 +87,9 @@ function getQuestionsAndAnswers(info:OutputIpInfo){
             },
             {
                 question: 'Max. Hostanzahl',
-                answer: info.maxPossibleHosts
+                answer: info.maxPossibleHosts.toString()
             },
         ]
     }
     ]
-}
-
-
-/** format questions and answers for 1th, 2nd, last subnet*/
-function etQuestionsAndAnswers(subnets:OutputSubnetInfo) :SubnetData[] {
-    function createRowsArray(subnet:OutputIpInfo) :QuestionAndAnswers[] {
-        return [
-            {
-                question: "NetzID:",
-                answer: subnet.netid
-            
-            },
-            {
-                question: "Erster Host:",
-                answer: subnet.firstHost
-            },
-            {
-                question: "Letzter Host:",
-                answer: subnet.lastHost
-
-            },
-            {
-                question: "Broadcast-Adresse:",
-                answer: subnet.broadcast
-            },
-            {
-                question: "Subnetz-Maske:",
-                answer: subnet.subnetmask
-            },
-        ]
-    }
-
-    // array 1 entry per subnet:
-    let questionsData:SubnetData[] = []
-    // add first subnet:
-    let subnet = {
-        name: "Erstes Subnetz",
-        questionAnswers: createRowsArray(subnets.firstSubnet)
-    }
-    questionsData.push(subnet)
-    // only add second subnet if it exists (if only 2 subnets exist -> only first and last exist)
-    if (subnets.secondSubnet){
-        subnet = {
-            name: "Zweites Subnetz",
-            questionAnswers: createRowsArray(subnets.secondSubnet)
-        }
-        questionsData.push(subnet)
-    }
-    // add third subet:
-    subnet = {
-        name: "Letztes Subnetz",
-        questionAnswers: createRowsArray(subnets.lastSubnet)
-    }
-    questionsData.push(subnet)
-
-    return questionsData
-
 }
