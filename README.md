@@ -1,5 +1,8 @@
 # Auto-Deploying Vite to GitHub Pages using Actions
 
+## Subnetting example:
+https://vincepr.github.io/vite-subnetting/
+
 
 ## Create the workflow
 - create a new file: `.github/workflows/deploy.yml`
