@@ -15,10 +15,10 @@ type gameProps = {
 export default function IpGame({gameMode:mode}:gameProps){
     let data = createGamedataByMode(mode)      //get the actual game data (subnets generated questions-answers ....)
     return(
-        <div>
+        <>
             <Assignment headerText={data.headerText}/>
             <QuestionsWithSubmitButton data={data.subnets}/>
-        </div>
+        </>
     )
 }
 

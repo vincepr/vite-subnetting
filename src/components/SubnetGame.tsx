@@ -16,14 +16,16 @@ export default function IpGamePage(){
         forceResetComponent()
     }
 
-    return <div>
+    return <div className="SubnetGame">
         <h2>Subnetting Trainer</h2>
-        <button onClick={forceResetComponent}>
-          Next Question
-        </button>
-        <OptionSelector 
-            value={gameMode}
-            onChange={updateGameMode}/>
+        <p>
+          <OptionSelector 
+              value={gameMode}
+              onChange={updateGameMode}/>
+          <button onClick={forceResetComponent}>
+            Next Question 
+          </button>
+        </p>
         <IpGame key={resetterKey} gameMode={gameMode}/>
     </div>
 }
@@ -33,7 +35,7 @@ export default function IpGamePage(){
 function OptionSelector({value: selected, onChange: setGameMode }:{value: GameModes, onChange: (val: GameModes) => void}) {      // deconstcruction to get to the selected without "props.selected" not pretty maybe write a interface if it get bigger
     return (
       <label>
-        What questions to select:
+        What questions to select: 
         <select
           value={selected}
           onChange={e =>setGameMode(e.target.value as GameModes)} 
