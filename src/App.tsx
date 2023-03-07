@@ -17,7 +17,7 @@ const App = () => (
         <Link href="/vite-subnetting/ip-game/">Subnetting-Trainer</Link>
       </div>
     </nav>
-    <Router base="/vite-subnetting/">
+    <Router base="/vite-subnetting">
       <Switch >        
         <Route path="/"><Home/></Route>
         <Route path="/converter"><Converter/></Route>
