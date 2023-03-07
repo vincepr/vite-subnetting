@@ -193,3 +193,5 @@ export default function App(){
   </div>
 )}
 ```
+
+Now our singlePageApplication is refreshable just like expected, even on github.pages.
