@@ -11,17 +11,17 @@ const App = () => (
   <div className="App">
     <nav>
       <div className="menu">
-        <Link href="/vite-subnetting/">Home</Link>
-        <Link href="/vite-subnetting/converter">Binary-Hexa-Decimal</Link>
-        <Link href="/vite-subnetting/rng-game">Rng-Game</Link>
-        <Link href="/vite-subnetting/ip-game">Subnetting-Trainer</Link>
+        <Link href="/">Home</Link>
+        <Link href="/converter">Binary-Hexa-Decimal</Link>
+        <Link href="/rng-game">Rng-Game</Link>
+        <Link href="/ip-game">Subnetting-Trainer</Link>
       </div>
     </nav>
     <Switch>        
-      <Route path="/vite-subnetting/"><Home/></Route>
-      <Route path="/vite-subnetting/converter"><Converter/></Route>
-      <Route path="/vite-subnetting/rng-game"><RngGamePage/></Route>
-      <Route path="/vite-subnetting/ip-game"><IpGamePage/></Route>
+      <Route path="/"><Home/></Route>
+      <Route path="/converter"><Converter/></Route>
+      <Route path="/rng-game"><RngGamePage/></Route>
+      <Route path="/ip-game"><IpGamePage/></Route>
     </Switch>
   </div>
   )
