@@ -5,6 +5,7 @@ import Converter from './components/Converter';
 import RngGamePage from './components/RngGame';
 import IpGamePage from './components/SubnetGame';
 
+const basePath = "/vite-subnetting/"
 
 // Routing of the "pages" of the Single-Page-Application using wouter to keep dependencies low
 const App = () => (
@@ -18,10 +19,10 @@ const App = () => (
       </div>
     </nav>
     <Switch>        
-      <Route path="/"><Home/></Route>
-      <Route path="/converter"><Converter/></Route>
-      <Route path="/rng-game"><RngGamePage/></Route>
-      <Route path="/ip-game"><IpGamePage/></Route>
+      <Route path=`${basePath}`><Home/></Route>
+      <Route path=`${basePath}converter`><Converter/></Route>
+      <Route path=`${basePath}rng-game`><RngGamePage/></Route>
+      <Route path=`${basePath}ip-game`><IpGamePage/></Route>
     </Switch>
   </div>
   )
