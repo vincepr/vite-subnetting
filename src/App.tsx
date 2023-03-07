@@ -7,7 +7,11 @@ import IpGamePage from './components/SubnetGame';
 
 
 // Routing of the "pages" --- using wouter to keep dependencies/size low
-const App = () => (
+export default function App(){
+  const basePath : string ="/vite-subnetting"; // base path= reponame for gh-pages
+  // to note we MUST use trailing "/" on Links for gh pages
+
+  return(
   <div className="App">
     <nav>
       <div className="menu">
@@ -17,7 +21,7 @@ const App = () => (
         <Link href="/vite-subnetting/ip-game/">Subnetting-Trainer</Link>
       </div>
     </nav>
-    <Router base="/vite-subnetting">
+    <Router base={basePath}>
       <Switch >        
         <Route path="/"><Home/></Route>
         <Route path="/converter"><Converter/></Route>
@@ -27,6 +31,4 @@ const App = () => (
       </Switch>
     </Router>
   </div>
-  )
-
-export default App
+  )}
