@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My App</title>
+    <title>redirect</title>
   </head>
   <body>
-    <h1>My App</h1>
-    <h2 id="header">Post Path: {PATH}</h2>
+    <h1>404 redirect</h1>
   </body>
   <script>
     // 404 -> redirect to landing single page application -> middleware filters out #!# from there
     let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
     let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
-    //window.location.href = newHref
-    history.pushState({page: 1}, "redirect", newHref)
-    //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
+    function goBack() {
+            window.history.back();
+            window.location.replace('url');
+        }
+    
+    window.location.href.replace(newHref)
   </script>
 </html>

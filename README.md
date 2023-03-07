@@ -142,18 +142,16 @@ Since a static-file for that path obviously does not exist, since were in a sing
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My App</title>
+    <title>redirect</title>
   </head>
   <body>
-    <h1>My App</h1>
-    <h2 id="header">Post Path: {PATH}</h2>
+    <h1>404 redirect</h1>
   </body>
   <script>
     // 404 -> redirect to landing single page application -> middleware filters out #!# from there
     let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
     let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
     window.location.href = newHref
-    //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
   </script>
 </html>
 ```
@@ -194,4 +192,4 @@ export default function App(){
 )}
 ```
 
-Now our singlePageApplication is refreshable just like expected, even on github.pages.
+Now our singlePageApplication is refreshable just like expected, even on github.pages. Tradeof is we can use browser back-forward after refreshing. So probably not worth the to do again.
