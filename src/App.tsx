@@ -1,15 +1,28 @@
 import './App.css'
-import { Link, Route, Router, Switch } from "wouter";
+import { Link, navigate, Route, Router, Switch, useLocation, useLocationProperty } from "wouter";
 import Home from './components/Home';
 import Converter from './components/Converter';
 import RngGamePage from './components/RngGame';
 import IpGamePage from './components/SubnetGame';
 
 
+
 // Routing of the "pages" --- using wouter to keep dependencies/size low
 export default function App(){
   const basePath : string ="/vite-subnetting"; // base path= reponame for gh-pages
   // to note we MUST use trailing "/" on Links for gh pages
+
+  const [location, setLocation] = useLocation()
+  console.log("current location: "+location)
+  if (location.includes("#!#"))  setLocation(location.replaceAll("#!#", ""))
+
+  // if (location.includes("#!#")){
+  //   //setLocation(location+"ä")
+  //   navigate("/vite-subnetting/")
+  // }
+
+  // (excluding the leading '#' symbol)
+ 
 
   return(
   <div className="App">
@@ -21,14 +34,16 @@ export default function App(){
         <Link href="/vite-subnetting/ip-game/">Subnetting-Trainer</Link>
       </div>
     </nav>
-    <Router base={basePath}>
+    <Router base={basePath} >
       <Switch >        
         <Route path="/"><Home/></Route>
         <Route path="/converter"><Converter/></Route>
         <Route path="/rng-game"><RngGamePage/></Route>
         <Route path="/ip-game"><IpGamePage/></Route>
-        <Route><h2>404, Not Found!</h2></Route>
+        <Route><h2>404, Not Found! inpage-routing went bad.</h2></Route>
       </Switch>
     </Router>
   </div>
   )}
+
+ 
