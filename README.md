@@ -129,4 +129,67 @@ export default function App(){
   </div>
   )}
   ```
- 
+  
+## next problem 404 on reload on subpath
+  
+Since a static-file for that path obviously does not exist, since were in a single page app, gh-pages defaults to 404ing.
+
+### The solution
+- replace the default github 404 by creating a own static 404.html file
+- in vite we place it in `public/404.html` to get it to "/"
+- then we make this file automatically redirect to our spa and hashing (here we use #!# but just # would work aswell) out of the url
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My App</title>
+  </head>
+  <body>
+    <h1>My App</h1>
+    <h2 id="header">Post Path: {PATH}</h2>
+  </body>
+  <script>
+    // 404 -> redirect to landing single page application -> middleware filters out #!# from there
+    let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
+    let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
+    window.location.href = newHref
+    //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
+  </script>
+</html>
+```
+- now we just need to add some auto redirection if there is a #!# in our vite-app
+
+```jsx
+export default function App(){
+  const basePath : string ="/vite-subnetting"; // base path= reponame for gh-pages
+  // to note we MUST use trailing "/" on Links for gh pages
+  const [location, setLocation] = useLocation()
+
+  //check if url includes#!# -> we got redirected by 404.html - because user refreshed singlepage-app
+  const urlHash = window.location.hash    //...vite-subnetting/#!#rng-game/ -> "#!#rng-game/"
+  if (urlHash.includes("#!#")){
+    setLocation(location+urlHash.replaceAll("#!#", ""))
+  }
+
+  return(
+  <div className="App">
+    <nav>
+      <div className="menu">
+        <Link href="/vite-subnetting/">Home</Link>
+        <Link href="/vite-subnetting/converter/">Binary-Hexa-Decimal</Link>
+        <Link href="/vite-subnetting/rng-game/">Rng-Game</Link>
+        <Link href="/vite-subnetting/ip-game/">Subnetting-Trainer</Link>
+      </div>
+    </nav>
+    <Router base={basePath} >
+      <Switch >        
+        <Route path="/"><Home/></Route>
+        <Route path="/converter"><Converter/></Route>
+        <Route path="/rng-game"><RngGamePage/></Route>
+        <Route path="/ip-game"><IpGamePage/></Route>
+        <Route><h2>404, Not Found! inpage-routing went bad.</h2></Route>
+      </Switch>
+    </Router>
+  </div>
+)}
+```

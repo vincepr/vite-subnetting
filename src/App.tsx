@@ -14,20 +14,10 @@ export default function App(){
   const [location, setLocation] = useLocation()
 
   //check if url includes#!# -> we got redirected by 404.html - because user refreshed singlepage-app
-
-  const urlPath = window.location.pathname
-  console.log(urlPath)
-  if (window.location.pathname.includes("#!#")){
-    setLocation(window.location.pathname.replaceAll("#!#", ""))
+  const urlHash = window.location.hash    //...vite-subnetting/#!#rng-game/ -> "#!#rng-game/"
+  if (urlHash.includes("#!#")){
+    setLocation(location+urlHash.replaceAll("#!#", ""))
   }
-
-  // if (location.includes("#!#")){
-  //   //setLocation(location+"ä")
-  //   navigate("/vite-subnetting/")
-  // }
-
-  // (excluding the leading '#' symbol)
- 
 
   return(
   <div className="App">
