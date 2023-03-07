@@ -11,10 +11,15 @@ import IpGamePage from './components/SubnetGame';
 export default function App(){
   const basePath : string ="/vite-subnetting"; // base path= reponame for gh-pages
   // to note we MUST use trailing "/" on Links for gh pages
-
   const [location, setLocation] = useLocation()
-  console.log("current location: "+location)
-  if (location.includes("#!#"))  setLocation(location.replaceAll("#!#", ""))
+
+  //check if url includes#!# -> we got redirected by 404.html - because user refreshed singlepage-app
+
+  const urlPath = window.location.pathname
+  console.log(urlPath)
+  if (window.location.pathname.includes("#!#")){
+    setLocation(window.location.pathname.replaceAll("#!#", ""))
+  }
 
   // if (location.includes("#!#")){
   //   //setLocation(location+"ä")
