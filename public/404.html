@@ -14,7 +14,10 @@
             window.history.back();
             window.location.replace('url');
         }
-    
-    window.location.href.replace(newHref)
+    goBack()
+    window.location.replace(location.protocol + "//" + location.hostname + newHref)
+    //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
+
+
   </script>
 </html>

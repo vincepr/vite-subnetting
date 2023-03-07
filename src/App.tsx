@@ -16,7 +16,7 @@ export default function App(){
   //check if url includes#!# -> we got redirected by 404.html - because user refreshed singlepage-app
   const urlHash = window.location.hash    //...vite-subnetting/#!#rng-game/ -> "#!#rng-game/"
   if (urlHash.includes("#!#")){
-    setLocation(location+urlHash.replaceAll("#!#", ""))
+    setLocation(location+urlHash.replaceAll("#!#", ""), {replace:true})
   }
 
   return(
