@@ -1,5 +1,5 @@
 import './App.css'
-import { Link, Route, Switch } from "wouter";
+import { Link, Router,  Route, Switch } from "wouter";
 import Home from './components/Home';
 import Converter from './components/Converter';
 import RngGamePage from './components/RngGame';
@@ -17,11 +17,13 @@ const App = () => (
         <Link href="/ip-game">Subnetting-Trainer</Link>
       </div>
     </nav>
-    <Switch>        
-      <Route path="/"><Home/></Route>
-      <Route path="/converter"><Converter/></Route>
-      <Route path="/rng-game"><RngGamePage/></Route>
-      <Route path="/ip-game"><IpGamePage/></Route>
+    <Switch>
+      <Router base="/vite-subnetting">
+        <Route path="/"><Home/></Route>
+        <Route path="/converter"><Converter/></Route>
+        <Route path="/rng-game"><RngGamePage/></Route>
+        <Route path="/ip-game"><IpGamePage/></Route>
+      </Router>
     </Switch>
   </div>
   )
