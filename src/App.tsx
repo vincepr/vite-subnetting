@@ -17,14 +17,14 @@ const App = () => (
         <Link href="/ip-game">Subnetting-Trainer</Link>
       </div>
     </nav>
-    <Switch>
+
       <Router base="/vite-subnetting">
         <Route path="/"><Home/></Route>
         <Route path="/converter"><Converter/></Route>
         <Route path="/rng-game"><RngGamePage/></Route>
         <Route path="/ip-game"><IpGamePage/></Route>
       </Router>
-    </Switch>
+
   </div>
   )
 
