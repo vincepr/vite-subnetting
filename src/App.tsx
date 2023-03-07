@@ -11,10 +11,10 @@ const App = () => (
   <div className="App">
     <nav>
       <div className="menu">
-        <Link href="/">Home</Link>
-        <Link href="/converter">Binary-Hexa-Decimal</Link>
-        <Link href="/rng-game">Rng-Game</Link>
-        <Link href="/ip-game">Subnetting-Trainer</Link>
+        <Link href="/vite-subnetting/">Home</Link>
+        <Link href="/vite-subnetting/converter">Binary-Hexa-Decimal</Link>
+        <Link href="/vite-subnetting/rng-game">Rng-Game</Link>
+        <Link href="/vite-subnetting/ip-game">Subnetting-Trainer</Link>
       </div>
     </nav>
     <Switch>        
