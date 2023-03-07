@@ -142,16 +142,19 @@ Since a static-file for that path obviously does not exist, since were in a sing
 <!DOCTYPE html>
 <html>
   <head>
-    <title>redirect</title>
+    <title>redirecting</title>
   </head>
   <body>
     <h1>404 redirect</h1>
   </body>
   <script>
     // 404 -> redirect to landing single page application -> middleware filters out #!# from there
-    let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
-    let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
-    window.location.href = newHref
+    function goBack() {
+      let oldHref = window.location.pathname 
+      let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")
+      window.location.replace(location.protocol + "//" + location.hostname + newHref)
+    }
+    goBack()
   </script>
 </html>
 ```
@@ -166,7 +169,7 @@ export default function App(){
   //check if url includes#!# -> we got redirected by 404.html - because user refreshed singlepage-app
   const urlHash = window.location.hash    //...vite-subnetting/#!#rng-game/ -> "#!#rng-game/"
   if (urlHash.includes("#!#")){
-    setLocation(location+urlHash.replaceAll("#!#", ""))
+    setLocation(location+urlHash.replaceAll("#!#", ""), {replace:true})
   }
 
   return(
@@ -189,7 +192,7 @@ export default function App(){
       </Switch>
     </Router>
   </div>
-)}
+  )}
 ```
 
-Now our singlePageApplication is refreshable just like expected, even on github.pages. Tradeof is we can use browser back-forward after refreshing. So probably not worth the to do again.
+it kinda works most of the time, refreshing and going back

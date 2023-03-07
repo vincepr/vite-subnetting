@@ -4,19 +4,16 @@
     <title>redirect</title>
   </head>
   <body>
-    <h1>404 redirect</h1>
+    <h1>404 redirecting - refresh if not working</h1>
   </body>
   <script>
     // 404 -> redirect to landing single page application -> middleware filters out #!# from there
     function goBack() {
       let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
       let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
-      window.history.back();
+      //window.history.back()
       window.location.replace(location.protocol + "//" + location.hostname + newHref)
-        }
+    }
     goBack()
-    //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
-
-
   </script>
 </html>
