@@ -11,7 +11,8 @@
     // 404 -> redirect to landing single page application -> middleware filters out #!# from there
     let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
     let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
-    window.location.href = newHref
+    //window.location.href = newHref
+    history.pushState({page: 1}, "redirect", newHref)
     //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
   </script>
 </html>
