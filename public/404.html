@@ -8,17 +8,14 @@
     <h2 id="header">Post Path: {PATH}</h2>
   </body>
   <script>
-    if (window.location.hash.length > 1) {
-        console.log("history >1")
-        //const path = window.location.hash.replace('#', '')
-        //history.pushState({ page: 1 }, "Some title", '/static-dynamic-routing' + path)
+    // if (window.location.hash.length > 1) {
+    //    console.log("history >1")
+    // }
 
-        //document.getElementById('header').innerHTML = document.getElementById('header').innerHTML.replace('{PATH}', path)
-        }
-
-    console.log(window.location.href)
-    console.log(window.location.pathname)
-    //window.location.href = '/vite-subnetting/#garbageto_fill'
+        // 404 -> redirect to landing single page application -> middleware filters out #!# from there
+    let oldHref = window.location.pathname                                          // for example    "/vite-subnetting/ip-game/"
+    let newHref = oldHref.replace("/vite-subnetting/", "/vite-subnetting/#!#")      // for example    "/vite-subnetting/#!#ip-game/
+    window.location.href = newHref
     //console.log(window.location = location.protocol + "//" + location.hostname + "/NewPath")
   </script>
 </html>
