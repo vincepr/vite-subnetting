@@ -1,15 +1,15 @@
 import { useState } from "react"
 
 export default function IpCalc(){
-    const [ip ,setIp] = useState("192.0.0.0")
+    const [ip ,setIp] = useState("10.0.0.0")
     const [oldCidr ,setOldCidr] = useState<number>(8)
-    const [newCidr ,setnewCidr] = useState<number>(12)
+    const [newCidr ,setnewCidr] = useState<number>()
     const [activeElement, setActiveElement] = useState<string>()      // :todo
-    const [countSubnets ,setCountSubnets] = useState<number>(16)
-    const [countHosts ,setCountHosts] = useState<number>(1048574)
+    const [countSubnets ,setCountSubnets] = useState<number>()
+    const [countHosts ,setCountHosts] = useState<number>()
     const [subnets, setSubnets] = useState<SubnetData[]>([])
     const isValidIp = isValidIpAddr(ip)
-    const isValidCidr = oldCidr < newCidr
+    const isValidCidr = newCidr ? oldCidr < newCidr : false
 
     const isDisabled = (elmentName:string) => (activeElement !== undefined && activeElement !==elmentName)
 
@@ -21,23 +21,57 @@ export default function IpCalc(){
     }
     const handleChangeOldCidr =(ev:React.ChangeEvent<HTMLInputElement>) =>{
         let nr = Number(ev.target.value)
-        if (nr>=0 && nr<=29){
-            setOldCidr(nr)
-        } else if (nr >30) setOldCidr(newCidr-1)
+        if (isNaN(nr)) return
+        if (nr > 29) nr = 29
+        setOldCidr(nr)
+        if (newCidr && newCidr>nr){
+            setCountHosts(Math.pow(2,(32-oldCidr)));
+            setCountSubnets(Math.pow(2,(oldCidr-nr)))
+        }
     }
+
+
+
+
     const handleChangeNewCidr =(ev:React.ChangeEvent<HTMLInputElement>) =>{
-        let nr = Number(ev.target.value)
-        if (nr>=0 && nr<=30){
-            setnewCidr(nr)
-        } else if (nr>30)setnewCidr(30)
+        if (ev.target.value===""){
+            setnewCidr(undefined); setCountSubnets(undefined); setCountHosts(undefined);
+            setActiveElement(undefined)
+        } else {
+            setActiveElement("NewCidr")
+            if (!isNaN(Number(ev.target.value))) {
+                let cidr = Number(ev.target.value)
+                if (cidr >30) cidr =30
+                setnewCidr(cidr)
+                if (cidr>oldCidr){
+                    setCountHosts(Math.pow(2,(32-cidr)));
+                    setCountSubnets(Math.pow(2,(cidr-oldCidr)))
+                }
+            }
+         } 
     }
     const handleChangeCountSubnets =(ev:React.ChangeEvent<HTMLInputElement>) =>{
-        let nr = Number(ev.target.value)
-        setCountSubnets(nr)
+        if (ev.target.value===""){
+            setnewCidr(undefined); setCountSubnets(undefined); setCountHosts(undefined);
+            setActiveElement(undefined)
+        } else {
+            setActiveElement("CountSubnets")
+            if (!isNaN(Number(ev.target.value))) {
+                setCountSubnets((Number(ev.target.value)))
+                
+            }
+         } 
     }
     const handleChangeCountHosts =(ev:React.ChangeEvent<HTMLInputElement>) =>{
-        let nr = Number(ev.target.value)
-        setCountHosts(nr)
+        if (ev.target.value===""){
+            setnewCidr(undefined); setCountSubnets(undefined); setCountHosts(undefined);
+            setActiveElement(undefined)
+        } else {
+            setActiveElement("CountHosts")
+            if (!isNaN(Number(ev.target.value))) {
+                setCountHosts((Number(ev.target.value)))
+            }
+         } 
     }
     
     // ON SUBMIT logic:
@@ -48,6 +82,7 @@ export default function IpCalc(){
         // only execute if all is valid:
         if (!isValidIp) return 
         if (!isValidCidr) return
+        if (!newCidr) return
         let subs = getSubnetData(ip, oldCidr, newCidr)
         setSubnets(subs)
     }
@@ -65,22 +100,23 @@ export default function IpCalc(){
                 </label>  
 
             <label>neue CIDR:
-                <input type="text" className="formatInput" value={newCidr } 
+                <input type="text" className="formatInput" value={newCidr ? newCidr : "" } 
                     onChange={e => handleChangeNewCidr(e)} 
                     onKeyDown={handleKeyDown} 
-                    style={isValidCidr?{}:{color:"red"}}/>
+                    disabled={isDisabled("NewCidr")}
+                    style={isValidCidr && !isDisabled("NewCidr")     ?{}:{color:"red"}}/>
                 </label> 
             <label> Subnetzanzahl: 
-                <input type="text" className="formatInput" value={countSubnets } 
+                <input type="text" className="formatInput" value={countSubnets ? countSubnets : "" } 
                     onChange={e => handleChangeCountSubnets(e)} 
                     onKeyDown={handleKeyDown} 
-                    style={isValidCidr?{}:{color:"red"}}/>
+                    disabled={true}/>
                 </label> 
             <label> anz. Hosts pro Netz: 
-                <input type="text" className="formatInput" value={countHosts } 
+                <input type="text" className="formatInput" value={countHosts ? countHosts : ""} 
                     onChange={e => handleChangeCountHosts(e)} 
                     onKeyDown={handleKeyDown} 
-                    style={isValidCidr?{}:{color:"red"}}/>
+                    disabled={true}/>
                 </label> 
             <button onClick={submitAnswers}>Calculate</button>
             <DrawSubnets subnets={subnets}/>
