@@ -165,36 +165,51 @@ export default function Ip4Calculator(){
 
 /** Jsx-Element that maps out the subnet-data array */
 function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
+    // if were undefinded we dont draw anything
     if ((subs.length<=0)){
         return <div></div>
     }
-
-    function oneSubnet(s:SubnetData){
-        return (
-        <div key={s.subnet} style={{display:"flex", flexDirection: "row", alignItems: "stretch"}}>
-            <div style={{width:"15%"}}> {s.nthSubnet}</div>
-            <div style={{flex:1}}>{s.subnet+" / "+s.cidr}</div>
-            <div style={{flex:1}}>{s.firstHost+" - "+s.lastHost}</div>
-            <div style={{flex:1}}>{s.broadcast}</div>
-            <div style={{flex:1}}>{s.newMask}</div>
-        </div>)
-    }
-
+    //otherwise we draw our Headline then map the data
     return(<>
-        <h3>CIDR: {subs[0].cidr}, Subnetz-Anzahl: {subs[0].subnetCount},   Hosts Per Netz: {subs[0].hostsPerNet}</h3>
+        <h4>
+            NeueCIDR: {subs[0].cidr}, 
+            Subnetz-Anzahl: {subs[0].subnetCount},   
+            Hosts Per Netz: {subs[0].hostsPerNet}
+        </h4>
+        <h4>
+            Neue Netzmaske: {subs[0].newMask}, 
+            originale Netzmaske: {subs[0].oldMask}
+        </h4>
         <div style={{display:"flex", flexDirection: "row", alignItems: "stretch"}}>
-            <div style={{width:"15%"}}><b>Nr</b></div>
-            <div style={{flex:1}}><b>Subnetze</b></div>
-            <div style={{flex:1}}><b>Hosts</b></div>
+            <div style={{flex:1}}><b>Nr</b></div>
+            <div style={{flex:2}}><b>Subnetze</b></div>
+            <div style={{flex:2}}><b>Hosts</b></div>
             <div style={{flex:1}}><b>BroadcastAddr</b></div>
-            <div style={{flex:1}}><b>Netzwerkmaske</b></div>
         </div>
         {subs.map(sub=>oneSubnet(sub))}
     </>)
+
+
+    // helper to map one subnet worth of data
+    function oneSubnet(s:SubnetData){
+        return (
+        <div key={s.subnet} style={{display:"flex", flexDirection: "row", alignItems: "stretch"}}>
+            <div style={{flex:1}}> {s.nthSubnet}</div>
+            <div style={{flex:2}}>{s.subnet+" / "+s.cidr}</div>
+            <div style={{flex:2}}>{s.firstHost+" - "+s.lastHost}</div>
+            <div style={{flex:1}}>{s.broadcast}</div>
+        </div>)
+    }
 }
 
+
+
+
+
 /* 
+*
 *   CALCULATING DATA AND FORMATING IT:
+*
 */
 
 /* function get data and split it in half with "..."s */
@@ -291,7 +306,7 @@ type SubnetData = {
 
 
 /* original calc -> crashes and gets slow so we calculate only a part instead */
-function deprecatedCalculationSubnets(ip:string, oldCidr:number, newCidr:number) {
+function deprec_CalculationSubnets(ip:string, oldCidr:number, newCidr:number) {
     let newSubnets = []
     let ipNum = (ip.split(".").map(str => parseInt(str))).reduce((acc, x) => (acc << 8) + x)
     let mask =    (-1 << (32 - oldCidr)) >>> 0;
