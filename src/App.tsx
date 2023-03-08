@@ -1,9 +1,10 @@
 import './App.css'
-import { Link, navigate, Route, Router, Switch, useLocation, useLocationProperty } from "wouter";
+import { Link, Route, Router, Switch, useLocation} from "wouter";
 import Home from './components/Home';
 import Converter from './components/Converter';
 import RngGamePage from './components/RngGame';
 import IpGamePage from './components/SubnetGame';
+import IpCalc from './components/ipcalculator/IpCalc';
 
 
 
@@ -26,6 +27,7 @@ export default function App(){
         <Link href="/vite-subnetting/">Home</Link>
         <Link href="/vite-subnetting/converter/">Binary-Hexa-Decimal</Link>
         <Link href="/vite-subnetting/rng-game/">Rng-Game</Link>
+        <Link href="/vite-subnetting/calculator/">Subnet-Calculator</Link>
         <Link href="/vite-subnetting/ip-game/">Subnetting-Trainer</Link>
       </div>
     </nav>
@@ -34,6 +36,7 @@ export default function App(){
         <Route path="/"><Home/></Route>
         <Route path="/converter"><Converter/></Route>
         <Route path="/rng-game"><RngGamePage/></Route>
+        <Route path="/calculator"><IpCalc/></Route>
         <Route path="/ip-game"><IpGamePage/></Route>
         <Route><h2>404, Not Found! inpage-routing went bad.</h2></Route>
       </Switch>
