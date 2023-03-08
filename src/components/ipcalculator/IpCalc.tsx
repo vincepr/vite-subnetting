@@ -1,6 +1,11 @@
 import { useState } from "react"
 
-/**  */
+
+/* 
+*   JSX Elements, styling, rendering and UI-behavior
+*/
+
+/** jsx element that rendes a subnet calculator */
 export default function Ip4Calculator(){
     const [ip ,setIp] = useState("10.0.0.0")
     const [oldCidr ,setOldCidr] = useState<number>(8)
@@ -112,6 +117,11 @@ export default function Ip4Calculator(){
         setSubnets(subs)
     }
 
+    // HELPER FUNCTION to validate
+    function isValidIpAddr(ip:string){
+        let regex= /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/
+        return regex.test(ip)
+    }
 
     return(
         <div className="SubnetCalculator">
@@ -153,6 +163,7 @@ export default function Ip4Calculator(){
 
 
 
+/** Jsx-Element that maps out the subnet-data array */
 function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
     if ((subs.length<=0)){
         return <div></div>
@@ -165,7 +176,7 @@ function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
             <div style={{flex:1}}>{s.subnet+" / "+s.cidr}</div>
             <div style={{flex:1}}>{s.firstHost+" - "+s.lastHost}</div>
             <div style={{flex:1}}>{s.broadcast}</div>
-            <div style={{flex:1}}>{s.mask}</div>
+            <div style={{flex:1}}>{s.newMask}</div>
         </div>)
     }
 
@@ -182,24 +193,36 @@ function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
     </>)
 }
 
+/* 
+*   CALCULATING DATA AND FORMATING IT:
+*/
 
-// original calc -> crashes and gets slow on big ones so we modify it
-function calcSubnets(ip:string, oldCidr:number, newCidr:number) {
-    let newSubnets = []
-    let ipNum = (ip.split(".").map(str => parseInt(str))).reduce((acc, x) => (acc << 8) + x)
-    let mask = (-1 << (32 - oldCidr)) >>> 0;
-    let subnetIpNum = ipNum & mask
-    let subnetCount = 2 ** (newCidr - oldCidr)
-    for (let i = 0; i < subnetCount; i++) {
-        let subnet = (subnetIpNum + (i << (32 - newCidr))) >>> 0
-        newSubnets.push(
-            [(subnet >>> 24) & 255, (subnet >>> 16) & 255, (subnet >>> 8) & 255, subnet & 255].join(".")
-        )
+/* function get data and split it in half with "..."s */
+function getSubnetData(ip:string, oldCidr:number, newCidr:number){
+    const cutoff = 100
+    let ips = calcSubnetsFast(ip, oldCidr, newCidr, cutoff)
+    if (ips.length >= cutoff*2){
+        // if did skipp after cutoff we do a set of ...s in the middle to indicate this
+        let firstHalf = ips.slice(0, cutoff)
+        let secondHalf = ips.slice(cutoff)
+        let dotDot = {
+            subnet: "...",
+            cidr: firstHalf[0].cidr,
+            firstHost: "...",
+            lastHost: "...",
+            broadcast: "...",
+            oldMask: "...",
+            newMask: "...",
+            hostsPerNet: firstHalf[0].hostsPerNet,
+            subnetCount: firstHalf[0].subnetCount,
+        }
+        ips = [...firstHalf ,dotDot,...secondHalf]
     }
-    return newSubnets
+    return ips
 }
 
-// quick calc that skips a certain cutoff
+
+/* function to calculate our subnets, cutoff to only calculate 2*cutoff subnets on the start and end */
 function calcSubnetsFast(ip:string, oldCidr:number, newCidr:number, cutoff:number) :SubnetData[] {
     let newSubnets = []
     let ipNum = (ip.split(".").map(str => parseInt(str))).reduce((acc, x) => (acc << 8) + x)
@@ -226,7 +249,6 @@ function calcSubnetsFast(ip:string, oldCidr:number, newCidr:number, cutoff:numbe
     }
     return newSubnets
 
-    
 
     // helper function calculates all data for one subnet and squezes it in obj
     function calcData(subnetIpNum:number, i:number, newCidr:number, mask:number, subnetCount:number):SubnetData{
@@ -237,13 +259,15 @@ function calcSubnetsFast(ip:string, oldCidr:number, newCidr:number, cutoff:numbe
 
         let subnet = (subnetIpNum + (i << (32 - newCidr))) >>> 0
         let broadcast = -1 + (subnetIpNum + (i+1 << (32 - newCidr))) >>> 0
+        let newMask = (-1 << (32 - newCidr)) >>> 0;
         return {
             subnet : subnetStringify(subnet) ,
             cidr:   newCidr,
             firstHost: subnetStringify(subnet+1) ,
             lastHost: subnetStringify(broadcast-1) ,
             broadcast: subnetStringify(broadcast) ,
-            mask: subnetStringify(mask),
+            oldMask: subnetStringify(mask),
+            newMask: subnetStringify(newMask),
             hostsPerNet: broadcast-subnet-1,
             subnetCount: subnetCount,
             nthSubnet: i+1,
@@ -251,42 +275,33 @@ function calcSubnetsFast(ip:string, oldCidr:number, newCidr:number, cutoff:numbe
     }
 }
 
+
 type SubnetData = {
     subnet: string;
     cidr: number;
     firstHost: string;
     lastHost: string;
     broadcast: string;
-    mask: string;
+    oldMask: string;
+    newMask: string;
     hostsPerNet: number;
     subnetCount: number;
     nthSubnet?: number;
 }
 
 
-function getSubnetData(ip:string, oldCidr:number, newCidr:number){
-    const cutoff = 100
-    let ips = calcSubnetsFast(ip, oldCidr, newCidr, cutoff)
-    if (ips.length >= cutoff*2){
-        // if did skipp after cutoff we do a set of ...s in the middle to indicate this
-        let firstHalf = ips.slice(0, cutoff)
-        let secondHalf = ips.slice(cutoff)
-        let dotDot = {
-            subnet: "...",
-            cidr: firstHalf[0].cidr,
-            firstHost: "...",
-            lastHost: "...",
-            broadcast: "...",
-            mask: "...",
-            hostsPerNet: firstHalf[0].hostsPerNet,
-            subnetCount: firstHalf[0].subnetCount,
-        }
-        ips = [...firstHalf ,dotDot,...secondHalf]
+/* original calc -> crashes and gets slow so we calculate only a part instead */
+function deprecatedCalculationSubnets(ip:string, oldCidr:number, newCidr:number) {
+    let newSubnets = []
+    let ipNum = (ip.split(".").map(str => parseInt(str))).reduce((acc, x) => (acc << 8) + x)
+    let mask =    (-1 << (32 - oldCidr)) >>> 0;
+    let subnetIpNum = ipNum & mask
+    let subnetCount = 2 ** (newCidr - oldCidr)
+    for (let i = 0; i < subnetCount; i++) {
+        let subnet = (subnetIpNum + (i << (32 - newCidr))) >>> 0
+        newSubnets.push(
+            [(subnet >>> 24) & 255, (subnet >>> 16) & 255, (subnet >>> 8) & 255, subnet & 255].join(".")
+        )
     }
-    return ips
-}
-
-function isValidIpAddr(ip:string){
-    let regex= /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/
-    return regex.test(ip)
+    return newSubnets
 }
