@@ -179,7 +179,7 @@ function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
 
 function stringToHalfSubnet(str:string):HalfIP{
 
-    return [0xfe00,0xffff,0,0]
+    return [0xfe,0x12,0,0,0,0,0,0]
 }
 
 
@@ -227,7 +227,11 @@ type SubnetData = {
 }
 
 
-type HalfIP = [number, number, number, number]        // ["fe00":"ffff":"ff00":"00ff"] -> []
+
+// 64Bit of ipv6 split into chunks: ex: [ff,00,f0,12,0,0,0,0,ff,ff,ff,ff,1f,d2,c3,e4]
+type HalfIP = [
+    number, number, number, number,
+    number, number, number, number]        // ["fe00":"ffff":"ff00":"00ff"] -> []
 
 
 function calcIpv6Subnets(ip:HalfIP , oldCidr:number, newCidr:number, cutoff:number) :SubnetData[]{
@@ -236,6 +240,7 @@ function calcIpv6Subnets(ip:HalfIP , oldCidr:number, newCidr:number, cutoff:numb
     let zeroSub = bitwiseAND(ip, mask)
     let differential = findOneDigit(newCidr)
     let subnetCount = 2 ** (newCidr - oldCidr)
+    console.log(subnetCount)
     if (subnetCount <= cutoff*2){
         // calculate everything if were below our cutoff:
         for (let i = 0; i<subnetCount; i++){
@@ -245,13 +250,15 @@ function calcIpv6Subnets(ip:HalfIP , oldCidr:number, newCidr:number, cutoff:numb
     } else {
         // first -> cuttoff : subnets
         for (let i=0; i<cutoff; i++){
+            console.log("helo")
             let subnet = add(zeroSub, multiply(differential,i))
             subnetsData.push(calcData(subnet,newCidr,mask,i))
         }
         // (last-cutoff) -> last : subnets
-        for (let i=(subnetCount-cutoff); i<subnetCount; i++){
-            let subnet = add(zeroSub, multiply(differential,i))
-            subnetsData.push(calcData(subnet,newCidr,mask,i))
+        for (let i=0; i<cutoff; i++){
+            let idx = subnetCount-cutoff+i
+            let subnet= add(zeroSub, multiply(differential,idx))
+            subnetsData.push(calcData(subnet,newCidr,mask,idx))
         }
     }
     return subnetsData
@@ -267,19 +274,33 @@ function calcIpv6Subnets(ip:HalfIP , oldCidr:number, newCidr:number, cutoff:numb
             subnetCount: subnetCount,
             nthSubnet: i+1,
         }
+
+        //crashes on:
+        // let x = [252,0,0,0, 1023, 65535, 65535, 65472]
         function subnetStringify(x:HalfIP) :string{
-            return x[0].toString(16) +":"+ x[1].toString(16) +":"+ x[2].toString(16) +":"+ x[3].toString(16)+"::"
+            let s1 = (x[0]+x[1]).toString(16)+":"
+            let s2 = (x[2]+x[3]).toString(16)+":"
+            let s3 = (x[4]+x[5]).toString(16)+":"
+            let s4 = (x[6]+x[7]).toString(16)+"::"
+            return s1+s2+s3+s4
         }
     }
 }
 
 
 //** HELPER Functions */
+function binaryStrToIpv6Half(str:string){
+    return [
+        parseInt(str.slice(0,8),2), parseInt(str.slice(8,16),2), 
+        parseInt(str.slice(16,24),2), parseInt(str.slice(24,32),2), 
+        parseInt(str.slice(32,40),2), parseInt(str.slice(40,48),2), 
+        parseInt(str.slice(48,56),2), parseInt(str.slice(56,64),2)] as HalfIP
+}   //->[0xfc00, 0, 0,0]
+
 function createIpv6Masks(cidr:number) : HalfIP{
     let str = "1".repeat(cidr)+"0".repeat(64-cidr)                                                                                                                      //  cidr=6 -> "11111100..." 
     //let negativeStr = "0".repeat(cidr)+"1".repeat(64-cidr) 
-    const splitParse= (str:string) => [parseInt(str.slice(0,16),2), parseInt(str.slice(16,32),2), parseInt(str.slice(32,48),2), parseInt(str.slice(-16),2)] as HalfIP   //->[0xfc00, 0, 0,0]
-    let mask: HalfIP = splitParse(str)
+    let mask: HalfIP = binaryStrToIpv6Half(str)
     //let negativeMask: HalfIP = splitParse(negativeStr)
     return mask
 }
@@ -295,7 +316,7 @@ function bitwiseAND(x:HalfIP, y:HalfIP) : HalfIP{
 
 function multiply(x:HalfIP, times:number){
     const max = 0xffff      // maxInt for each segment
-    let result : HalfIP = [0,0,0,0]
+    let result : HalfIP = [0,0,0,0, 0,0,0,0]
     let ubertrag = 0
 
     for (let i=x.length-1; i>=0; i--){
@@ -309,7 +330,7 @@ function multiply(x:HalfIP, times:number){
 }
 
 function add(x:HalfIP, y:HalfIP): HalfIP{
-    let sum: HalfIP = [0,0,0,0]
+    let sum: HalfIP = [0,0,0,0, 0,0,0,0]
     let ubertrag = 0
 
     for (let i=x.length-1; i>=0; i--){
@@ -324,9 +345,8 @@ function add(x:HalfIP, y:HalfIP): HalfIP{
 
 // get a Addr with  only binary0s and only one "1" at the cidr location
 function findOneDigit(cidr:number) : HalfIP{
-    const splitParse= (str:string) => [parseInt(str.slice(0,16),2), parseInt(str.slice(16,32),2), parseInt(str.slice(32,48),2), parseInt(str.slice(-16),2)] as HalfIP  
     let str = "0".repeat(cidr-1)+"1"+"0".repeat(64-cidr)
-    return splitParse(str)
+    return binaryStrToIpv6Half(str)
 }
 
 
