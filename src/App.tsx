@@ -4,8 +4,8 @@ import Home from './components/Home';
 import Converter from './components/Converter';
 import RngGamePage from './components/RngGame';
 import IpGamePage from './components/SubnetGame';
-import Ip4Calc from './components/ipcalculator/Ip4Calc';
-import Ip6Calc from './components/ipcalculator/Ip6Calc';
+import Ip4Calc from './components/ipcalculator/Ip4Calculator';
+import Ip6Calc from './components/ipcalculator/Ip6Calculator';
 
 
 

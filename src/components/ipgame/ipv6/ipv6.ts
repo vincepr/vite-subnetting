@@ -179,7 +179,7 @@ function getRandomIp(){
 
 
 
-/** from numbers[99251,0,300,0,0,0,0] make string like fe1:0:20:: */
+/** from numbers[99251,0,300,0,0,0,0,0] make string like fe1:0:20:: */
 function humanizeIp(hexaIp: number[]){
     let asStrings = toNumbersArray(hexaIp)
     let combinations = allPossibleCombinations(asStrings)
