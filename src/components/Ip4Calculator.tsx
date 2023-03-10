@@ -1,9 +1,10 @@
 import { useState } from "react"
-import getSubnetData, {SubnetData} from "./ipv4"
+import getSubnetData, {SubnetData} from "./ipcalculator/ipv4"
 
 
 /* 
-*   JSX Elements, styling, rendering and UI-behavior
+*   JSX Element, dynamically calculate all Subnets for given user input, 
+*    like start-subnet, cidr, maxhosts needed ec
 */
 
 /** jsx element that rendes a subnet calculator */

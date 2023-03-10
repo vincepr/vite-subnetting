@@ -1,251 +1,241 @@
-// class that holds an ipv4 and all relevant data to it. Random if no default. 
-// .getInfo() -> info regarding the ip adress.
-// .getRandomSubnet() -> creates a random subnet combination of the subnet and passes back info about it.
-
-// output
-export type V6OutputIpInfo = {
-    ip: string[];
-    cidr: number;
-    netid: string[];
-    firstHost: string[];
-    lastHost: string[];
-    maxPossibleSubnets: number;
-}
-
-export type V6OutputSubnetInfo = {
-    newCidr: number;
-    subnetCount: number;
-    rngSubnetCount: number;
-    firstSubnet: V6OutputIpInfo;
-    lastSubnet: V6OutputIpInfo;
-}
 
 
-
-
-export default class IPv6{
-    ipArray : number[]
-    cidr: number
-    netid: number[]
-    firstHost: number[]
-    lastHost: number[]
-    info: V6OutputIpInfo
-    
-    constructor(ip:number[] | "random" = "random", cidr:number=32){
-        if (ip==="random"){
-            let rng = getRandomIp()
-            this.ipArray = rng.ip
-            this.cidr= rng.cidr
+/* function get data and split it in half with "..."s */
+export default function getSubnetData(ip:string, oldCidr:number, newCidr:number) :SubnetData[]{
+    const cutoff = 100
+    let halfIP = stringToHalfSubnet(ip)
+    let ips:SubnetData[] = calcIpv6Subnets(halfIP, oldCidr, newCidr, cutoff)
+    if (ips.length >= cutoff*2){
+        // if did skipp after cutoff we do a set of ...s in the middle to indicate this
+        let firstHalf = ips.slice(0, cutoff)
+        let secondHalf = ips.slice(cutoff)
+        let dotDot = {
+            subnet: "...",
+            cidr: firstHalf[0].cidr,
+            oldMask: "...",
+            newMask: "...",
+            subnetCount: firstHalf[0].subnetCount,
+            nthSubnet: cutoff+1,
         }
-        else{
-            this.ipArray=ip
-            this.cidr = cidr
-        }
-        let calculated = getCalculatedInfo(this.ipArray, this.cidr)
-        this.netid=calculated.netid
-        this.firstHost=this.netid
-        this.lastHost=calculated.lastHost
-        this.info=this.getInfo()
+        ips = [...firstHalf ,dotDot,...secondHalf]
     }
-
-    getInfo(): V6OutputIpInfo{
-        return  {
-            ip:         humanizeIp(this.ipArray),
-            cidr:       this.cidr,
-            netid:      humanizeIp(this.netid),
-            firstHost:  humanizeIp(this.firstHost),
-            lastHost:   humanizeIp(this.lastHost),
-            maxPossibleSubnets: Math.pow(2, (64-this.cidr) ),
-        }
-    }
-
-    getRandomSubnet(): V6OutputSubnetInfo{
-        let newCidr = getRandomIntInclusive(this.cidr+2, 64)
-        let subnetCount = Math.pow(2, newCidr-this.cidr)
-        let rngSubnetCount = getRandomIntInclusive(1+Math.pow(2, newCidr-this.cidr-1),subnetCount)
-        
-        let FirstSubnet = new IPv6(this.netid, newCidr)
-        let LastSubnet = new IPv6(this.lastHost, newCidr)
-        
-
-
-        return {
-            newCidr : newCidr,
-            subnetCount: subnetCount,
-            rngSubnetCount: rngSubnetCount,
-            firstSubnet: FirstSubnet.info,
-            lastSubnet: LastSubnet.info,
-        }
-    }
-
+    return ips
 }
 
 
-// The maximum is inclusive and the minimum is inclusive
-function getRandomIntInclusive(min:number, max:number):number {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min); 
-}
-
-
-
-// we just subnet on the 32bit before the hostpart -> so its not the full subnetmask-range possible. partNetid partFirsthost etc...
-function getCalculatedInfo(ipArray:number[], cidr:number){
-    // extract the 32 bit out of the Array then calculate netid, firsthost, lasthost on 32 relevant bits:
-    let partIp = ipArray[2]*65536+ipArray[3]
-    let masks=calcNetMasks(cidr-32)
-    let partSubnetMask = masks.sub
-    let partHostnetMask = masks.host
-    let partNetid = bitwiseAnd_32bit(partIp,  partSubnetMask)
-    let partFirsthost = partNetid+1
-    let partLasthost = partIp+ partHostnetMask
-    // bring those 32 bit back into the ipArray:
-    return {
-        netid: pushIntoArray(partNetid, ipArray),
-        lastHost: pushIntoArray(partLasthost, ipArray)
-    }
-
-    //helper functions for the code above:
-    //funkcion to make out of a 32 bit number 2 16bit blocks and squeeze them into the array
-    function pushIntoArray(twoBlocks:number, ipArray: number[]){
-        let highBlockBits = Math.floor(twoBlocks / 65536)
-        let lowBlockBits = twoBlocks % 65536
-        return [ipArray[0],ipArray[1], highBlockBits, lowBlockBits, 0,0,0,0,]
-    }
-    function bitwiseAnd_32bit(value1:number, value2:number) {
-        const maxInt32Bits = 65536; // 2^16 Split 32 bit into 2 16 bit chunks
-    
-        const value1_highBits = value1 / maxInt32Bits;
-        const value1_lowBits = value1 % maxInt32Bits;
-        const value2_highBits = value2 / maxInt32Bits;
-        const value2_lowBits = value2 % maxInt32Bits;
-        return (value1_highBits & value2_highBits) * maxInt32Bits + (value1_lowBits & value2_lowBits)
-    }
-    function calcNetMasks(cidr:number){
-        /**flip all bits for some-ammount of digits */
-        function flipbits(v:number, digits:number) {
-            return ~v & (Math.pow(2, digits) - 1);
-        }
-    
-        // get 11110000... for cidr times 1s
-        let binaryDigits = ``
-        for (let i =0; i<32; i++){
-            if (i<cidr){binaryDigits+="1"}
-            else {binaryDigits+="0"}
-        }
-        // calculate the 2 masks
-        let decimalSubnetMask = parseInt(binaryDigits,2)
-        let decimalHostMask = flipbits(decimalSubnetMask, 32)
-    
-        return {sub: decimalSubnetMask, host: decimalHostMask}
-    }
-}
-
-
-
-
-function getRandomIp(){
-    let rngIp= [0xfe00,]                                            // start with a "private ip block"
-    if (Math.random() < 0.5){
-        for (let i of [1,2,3]){
-            rngIp.push(rngChunk())                                  // priorize subnet part
-        }
-        for (let i of [1,2,3,4]){
-            rngIp.push(0)                                           // for training purpose priorize :: at host
-        }
-    } else {
-        for (let i=0; i<7 ; i++){
-            rngIp.push(rngChunk())                                  // failback of total random ip (with random hostpart)
-        }
-    }
-    let rng = {ip:rngIp, cidr:getRandomIntInclusive(32,63)}
-    return rng
-
-    //helper functions for the code above:
-
-    
-    function rngChunk(){
-        if (Math.random()<0.4){
-                return getRandomIntInclusive(0, 0xFFF)              // priorize 0 as the first hexa-digit -> or it is statistically way to unlikely.
-        }
-        else if (Math.random()<0.3){
-            return getRandomIntInclusive(0, 0xFFFF)                 // default full random range
-        }
-        return 0                                                    // priroize 0 or it is way to unlikely
-    }
-}
-
-
-
-
-/** from numbers[99251,0,300,0,0,0,0,0] make string like fe1:0:20:: */
-function humanizeIp(hexaIp: number[]){
-    let asStrings = toNumbersArray(hexaIp)
-    let combinations = allPossibleCombinations(asStrings)
-    combinations = filterCombinations(combinations)
-    return stringify(combinations, asStrings)
-
-    // helper functions for the code above:
-
-    type SliceOfZeros = 
-        {slice:string[], start:number, end:number}
-
-    function toNumbersArray(array: number[]) : string[] {
-        let hexaIpInStrings = []
-        for (let chunk of array){
-            hexaIpInStrings.push(chunk.toString(16))
-        }
-        return hexaIpInStrings
-    }
-    function allPossibleCombinations(arr: string[]){
-        let combinations:SliceOfZeros[] = []
-        // find all combinations of concurrent chunks
-        for(let start=0; start<arr.length; start++){
-            for(let end=start+1; end<arr.length+1; end++){
-                let slice = arr.slice(start, end)
-                if(slice.length>1){combinations.push({slice:slice, start:start, end:end})}
+// isValid-check ipv6-addr must be done before!
+export function stringToHalfSubnet(str:string):HalfIP{
+    const maxlen = 8;      // length of the full ip in required blocks
+    // removing the :: short-form if it exists:
+    let ip : string[] = []
+    if (str.includes("::") ){
+        let undot = str.split("::")
+        let u1 = undot[0].split(":").filter(str=>str!=="")
+        let u2 = undot[1].split(":").filter(str=>str!=="")
+        for (let i=0; i<8;i++){
+            if (u1.length>0) { 
+                let s = u1.shift()
+                s &&ip.push(s)
+            }
+            else if (maxlen-ip.length>u2.length) {
+                ip.push("0")
+            } else{
+                let s = u2.shift()
+                s &&ip.push(s)
             }
         }
-        return combinations
+
+    } else{
+        ip = str.split(":").filter(str=>str!=="")
     }
-    function filterCombinations(arr: SliceOfZeros[]){    
-        let combinations= arr
-        // filter out all that include  a NOT "0" chunk
-        combinations = combinations.filter((a)=>isAllZeros(a.slice))
-        // get longest repetition/repetitions of "0"s
-        let lengths = combinations.map(a=>a.slice.length)
-        let maxLength = Math.max(...lengths)
-        let possibleSubstitutions = combinations.filter((a) => (a.slice.length===maxLength))
-        return possibleSubstitutions
-        // return true if every element of the array is "0"
-        function isAllZeros(arr:string[]){
-            let isAllZeros = true
-            arr.forEach(
-                (string)=>{
-                    if(!(string==="0")){isAllZeros = false}}
-            )
-            return isAllZeros}
-    }
-    //make string of every valid shortened ipv6 (with ":"s and one "::"):
-    function stringify(possibleSubstitutions: SliceOfZeros[], hexaIp:string[]){
-        if(possibleSubstitutions.length===0){
-            return [ hexaIp[0]+":"+hexaIp[1]+":"+hexaIp[2]+":"+hexaIp[3]+":"+hexaIp[4]+":"+hexaIp[5]+":"+hexaIp[6]+":"+hexaIp[7], ]     // case no substitutions -> no ::
+    //so far: -> [fe12:1:2::3ff1:ff] ->  ['fe12', '1', '2', '0', '0', '0', '3ff1', 'ff']
+    // now we do the string-> ints and double the elements: ["fe12", "f1de"... -> [0xfe, 0x12, 0xf1, 0xde ...]
+    let halfIP:any[] = []
+    ip.forEach((val, idx, arr)=>{
+        if (val.length<3){
+            halfIP.push(0)
+            let slice = (parseInt(val))
+            if (!isNaN(slice))     halfIP.push(slice)
+        } else{
+            let slice1 = parseInt( val.slice(-4,-2)   ,16 )
+            let slice2 = parseInt( val.slice(-2) ,16 )
+            if (!isNaN(slice1))     halfIP.push(slice1)
+            if (!isNaN(slice2))     halfIP.push(slice2)
         }
-        let strArray: string[] = []
-        for (let subst of possibleSubstitutions){
-            let substituteString = ""
-            hexaIp.forEach((chunk, index)=>{
-                if(index===7 && !(index===subst.end-1)){
-                    substituteString+=chunk                             //reached end -> no finishing : needed
-                }else if(!(subst.start<=index && index<subst.end)){
-                    substituteString+=chunk+":"                         //build normal chunk + ":"
-                } else if( index===subst.start){
-                    substituteString+=":"                               //substitute the :: for the successive 0s
-                }
-            })
-            strArray.push(substituteString)
-        }
-        return strArray
+    })
+    return  halfIP.filter((val, idx)=>idx<maxlen) as HalfIP
+}
+
+
+
+
+
+/* 
+*
+*   CALCULATING DATA AND FORMATING IT:
+*
+*/
+
+export type SubnetData = {
+    subnet: string;
+    cidr: number;
+    firstHost?: string;
+    lastHost?: string;
+    broadcast?: string;
+    oldMask: string;
+    newMask: string;
+    hostsPerNet?: number;
+    subnetCount: number;
+    nthSubnet: number;
+}
+
+
+
+// 64Bit/half of ipv6 split into chunks: ex: [ff,00,f0,12,0,0,0,0,ff,ff,ff,ff,1f,d2,c3,e4]
+//               fe      00    :     e1   00    :      0      :      0      d1   ::
+export type HalfIP = [number, number,  number, number,  number, number,  number, number]
+
+
+function calcIpv6Subnets(ip:HalfIP , oldCidr:number, newCidr:number, cutoff:number) :SubnetData[]{
+    let subnetsData = []
+    let {mask:mask}   = createIpv6Masks(oldCidr)
+    let zeroSub = bitwiseAND(ip, mask)
+    let differential = findOneDigit(newCidr)
+
+    // subnet count will overflow if new-old>53 so we protect against it with the max safe int as default
+    let subnetCount = Number.MAX_SAFE_INTEGER
+    if ((newCidr-oldCidr)<52) {
+        subnetCount = 2 ** (newCidr - oldCidr) 
     }
+
+    if (subnetCount <= cutoff*2){                                       //we need "overflow" safety for these following comparisons against subnetCount
+        // calculate everything if were below our cutoff:
+        for (let idx = 0; idx<subnetCount; idx++){
+            let subnet = add(zeroSub, multiply(differential,idx))       //<- subnet = zeroSubnet + idx*differential
+            subnetsData.push(calcData(subnet,newCidr,mask,idx, oldCidr))
+        }
+    } else {
+        // first -> cuttoff 
+        for (let idx=0; idx<cutoff; idx++){
+            let subnet = add(zeroSub, multiply(differential,idx))
+            subnetsData.push(calcData(subnet,newCidr,mask,idx, oldCidr))
+        }
+        // (last-cutoff) -> last 
+        for (let i=0; i<cutoff; i++){
+            let idx = subnetCount-cutoff+i                              //if we overflow these might be incorrect but whatever, to big to read anyways
+            let subnet= add(zeroSub, multiply(differential,idx))
+            subnetsData.push(calcData(subnet,newCidr,mask,idx, oldCidr))
+        }
+    }
+    return subnetsData
+
+    // helper function calculates all data for one subnet and squezes it in obj
+    function calcData(subnet:HalfIP, newCidr:number, mask:HalfIP, i:number, oldCidr:number):SubnetData{
+        let {mask:newMask, negativeMask:newNegativeMask}   = createIpv6Masks(newCidr)
+        let lastHost = add(subnet, newNegativeMask)
+        return {
+            subnet : subnetStringify(subnet)+":" ,
+            cidr:   newCidr,
+            oldMask: subnetStringify(mask)+":",
+            newMask: subnetStringify(newMask)+":",
+            subnetCount: 2 ** (newCidr - oldCidr) ,
+            nthSubnet: i+1,
+            firstHost: subnetStringify(subnet)+":",
+            lastHost: subnetStringify(lastHost)+"ffff:ffff:ffff:ffff",
+        }
+
+        
+    }
+}
+
+
+//** HELPER Functions */
+function subnetStringify(x:HalfIP) :string{
+    const blocksize=16*16
+    let b1 = ( blocksize*x[0]+x[1] ).toString(16)+":"
+    let b2 = ( blocksize*x[2]+x[3] ).toString(16)+":"
+    let b3 = ( blocksize*x[4]+x[5] ).toString(16)+":"
+    let b4 = ( blocksize*x[6]+x[7] ).toString(16)+":"
+    if((b2+b3+b4) === "0:0:0:") return b1
+    if((b3+b4) === "0:0:") return b1+b2
+    if((b4) === "0:") return b1+b2+b3
+    return b1+b2+b3+b4
+}
+
+function binaryStrToIpv6Half(str:string){
+    return [
+        parseInt(str.slice(0,8),2), parseInt(str.slice(8,16),2), 
+        parseInt(str.slice(16,24),2), parseInt(str.slice(24,32),2), 
+        parseInt(str.slice(32,40),2), parseInt(str.slice(40,48),2), 
+        parseInt(str.slice(48,56),2), parseInt(str.slice(56,64),2)] as HalfIP
+
+}
+
+function createIpv6Masks(cidr:number) {
+    let str         = "1".repeat(cidr)+"0".repeat(64-cidr)                                                                                                                      //  cidr=6 -> "11111100..." 
+    let negativeStr = "0".repeat(cidr)+"1".repeat(64-cidr) 
+    let mask: HalfIP         = binaryStrToIpv6Half(str)
+    let negativeMask: HalfIP = binaryStrToIpv6Half(negativeStr)
+    return {mask:mask, negativeMask: negativeMask}
+}
+
+
+function bitwiseAND(x:HalfIP, y:HalfIP) : HalfIP{
+    let bitwiseAnd = []
+    for (let i in  x) {
+        bitwiseAnd.push( x[i] & y[i] )
+    }
+    return bitwiseAnd as HalfIP
+}
+
+function multiply(x:HalfIP, times:number){
+    const max = 0xffff      // maxInt for each segment
+    let result : HalfIP = [0,0,0,0, 0,0,0,0]
+    let ubertrag = 0
+
+    for (let i=x.length-1; i>=0; i--){
+        let s = x[i] * times + ubertrag
+        let {remainder:value, transfer:newTransfer} =getOverflow(s)
+        result[i]=value
+        ubertrag = newTransfer
+    }
+    if (ubertrag>=1) console.error("halfIPMultiplication() overrunn!!! sum is to big",x,times)
+    return result
+}
+
+function add(x:HalfIP, y:HalfIP): HalfIP{
+    let sum: HalfIP = [0,0,0,0, 0,0,0,0]
+    let ubertrag = 0
+
+    for (let i=x.length-1; i>=0; i--){
+        let s = x[i] + y[i] + ubertrag
+        let {remainder:value, transfer:newTransfer} =getOverflow(s)
+        sum[i]=value
+        ubertrag = newTransfer
+    }
+    if (ubertrag>=1) console.error("halfIPAddition() overrunn!!! sum is to big", x, y)
+    return sum
+}
+
+// get a Addr with  only binary0s and only one "1" at the cidr location
+function findOneDigit(cidr:number) : HalfIP{
+    let str = "0".repeat(cidr-1)+"1"+"0".repeat(64-cidr)
+    return binaryStrToIpv6Half(str)
+}
+
+
+// for a block of digits of numbersystem:base(2binary, 16hex) how much of nr fits into it
+// and how much of does have to be transfered into the next higher digit
+// example 1110+0101 -> 0011 with transfer of 1 -> ...1 0011
+function getOverflow(nr:number, base?:number, digits?:number):{transfer:number, remainder:number}{
+    const bas = base? base : 16
+    const dig = digits ? digits : 4
+    const totalBase = Math.pow(bas,dig)         // theoretical base of our block if it was a number system
+    const maxVal = totalBase -1                 // basically 0xFFFF for this
+    
+    if (nr <= maxVal) return {transfer:0, remainder:nr}
+
+	let remainder = nr % totalBase
+	let transfer = Math.floor(nr/totalBase)
+    return {transfer:transfer, remainder:remainder}
 }

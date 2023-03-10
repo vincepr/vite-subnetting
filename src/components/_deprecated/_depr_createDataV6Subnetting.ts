@@ -1,5 +1,5 @@
-import {V6OutputSubnetInfo, V6OutputIpInfo} from "./ipv6"
-import Ipv6 from "./ipv6"
+import {V6OutputSubnetInfo, V6OutputIpInfo} from "./_depr_ipv6"
+import Ipv6 from "./_depr_ipv6"
 
 // create a new ip & Subnet combination and only pass on relevant info for the IpGame
 

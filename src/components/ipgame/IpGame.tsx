@@ -3,7 +3,7 @@ import { GameModes } from "../SubnetGame"
 import { DrawQuestions } from "./DrawQuestions"
 import { createDataV4Basic } from "./ipv4/createDataV4Basic"
 import { createDataV4Subnet } from "./ipv4/createDataV4Subnetting"
-import { createDataV6Subnet } from "./ipv6/createDataV6Subnetting"
+import createDataIPv6Game from "./ipv6/createDataV6Game"
 
 
 //input:
@@ -27,13 +27,13 @@ export default function IpGame({gameMode:mode}:gameProps){
 function createGamedataByMode(mode:GameModes){
     if (mode ==="Basic")        return createDataV4Basic()
     else if (mode ==="Ipv4")    return createDataV4Subnet()
-    else if (mode ==="Ipv6")    return createDataV6Subnet()
+    else if (mode ==="Ipv6")    return createDataIPv6Game()
     else if (mode==="All") {
         let rng = Math.random()
         if (rng <0.4) {
                                 return createDataV4Subnet()
         } else if (rng <0.7){
-                                return createDataV6Subnet()
+                                return createDataIPv6Game()
         } else {
                                 return createDataV4Basic()
         }

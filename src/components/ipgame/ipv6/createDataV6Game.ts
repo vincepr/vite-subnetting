@@ -1,29 +1,4 @@
-import {V6OutputSubnetInfo, V6OutputIpInfo} from "../ipgame/ipv6/ipv6"
-import Ipv6 from "../ipgame/ipv6/ipv6"
-
-
-
-type SubnetData = {
-    subnet: string;
-    cidr: number;
-    firstHost?: string | undefined;
-    lastHost?: string | undefined;
-    broadcast?: string | undefined;
-    oldMask: string;
-    newMask: string;
-    hostsPerNet?: number | undefined;
-    subnetCount: number;
-    nthSubnet: number;
-}
-
-
-//
-// delete above this ^  :todo
-//
-
-
-
-import getSubnetData, { HalfIP, stringToHalfSubnet } from "./ipv6"
+import getSubnetData, { HalfIP, stringToHalfSubnet, SubnetData } from "./ipv6"
 
 // create a new ip & Subnet combination and only pass on relevant info for the IpGame
 
@@ -42,26 +17,39 @@ type IPv6_OneSubnet = {
 }
 
 
-function createDataIPv6Game():gameData{
+export default function createDataIPv6Game():gameData{
     let {oldCidr:oldCidr, newCidr:newCidr, rngSubCount:rngSubCount } = randomizeCidrs()
-    let rngIp = getRngIPv6()
+    let rngIp = getRandomIPv6()
     let subs = getSubnetData(rngIp, oldCidr, newCidr)
     let data = getQsAndAnswers(subs)
     
     return {
-        headerText: getHeaderTxt(rngIp, oldCidr, rngSubCount),
+        headerText: getHeaderTxt(rngIp, oldCidr, rngSubCount, newCidr),
         subnets: data,
     }
-}
 
+    function getHeaderTxt(ipname:string, oldCidr:number, rngSubnetCount:number, newCidr:number){
+        if (Math.random()<0.6){
+            return [
+                `Gegeben ist die Ip adresse: ${ipname}/${oldCidr}.`,
+                `Es werden ${rngSubnetCount} Subnetze benötigt.`,
+                `Berechne:`,
+            ]
+        }else{
+            return [
+                `Für das Netz ${ipname}/${oldCidr} werden Subnetze`,
+                `mit der neuen CIDR: /${newCidr} benötigt.`,
+                `Berechne:`,
+            ]
+        }
+    }
+}
 
 
 function getQsAndAnswers(subs:SubnetData[]) :IPv6_OneSubnet[] {
     let questionsData = []
     const cidr = subs[0].cidr
     const firstNet =  humanizeIp( FullSubnet( stringToHalfSubnet(subs[0].subnet)              ))
-    const secondNet = humanizeIp( FullSubnet( stringToHalfSubnet(subs[1].subnet)              ))
-    const thirdNet =  humanizeIp( FullSubnet( stringToHalfSubnet(subs[2].subnet)              ))
     const lastNet =   humanizeIp( FullSubnet( stringToHalfSubnet(subs[subs.length-1].subnet)  ))
     
     let subnet = {
@@ -70,8 +58,11 @@ function getQsAndAnswers(subs:SubnetData[]) :IPv6_OneSubnet[] {
     }
     questionsData.push(subnet)
 
-    //only add second subnet if it exists (if only 2 subnets exist -> only first and last exist)
+    //only add 2-3rd subnet if it exists (if only 2 subnets exist -> only first and last exist)
     if (subs.length>2){
+        const secondNet = humanizeIp( FullSubnet( stringToHalfSubnet(subs[1].subnet)              ))
+        const thirdNet =  humanizeIp( FullSubnet( stringToHalfSubnet(subs[2].subnet)              ))
+    
          subnet = {
              name: "Zweites Subnetz",
              questionAnswers: createRowsArray(secondNet, cidr)
@@ -125,43 +116,7 @@ function getRandomIntIncl(min:number, max:number):number {
     return Math.floor(Math.random() * (max - min + 1) + min); 
 }
 
-function getHeaderTxt(ipname:string, cidr:number, rngSubnetCount:number){
-    return [
-        `Gegeben ist die Ip adresse: ${ipname}/${cidr}.`,
-        `Es werden ${rngSubnetCount} Subnetze benötigt.`,
-        `Berechne:`,
-    ] 
-}
-
-function randomizeCidrs(){
-    let rng = Math.random()
-    let difference = undefined
-    let newCidr = undefined
-    if(rng <0.2) difference = 1
-    else if (rng <0.4) difference = 2
-    else if (rng<0.6) difference = 3
-    else if (rng<0.8) difference = 4
-    else difference = getRandomIntIncl(5,10)
-    
-    rng = Math.random()
-    if(rng<0.2) newCidr=64
-    else if(rng<0.4) newCidr=12
-    else if(rng<0.7) newCidr=16
-    else newCidr = getRandomIntIncl(16,64)
-    let  oldCidr = newCidr-difference
-
-    // get random subnetCount for game: (by design of above ranges this must not overflow!)
-    let subnetCount = Math.pow(2, newCidr-oldCidr)
-    let rngSubnetCount = getRandomIntIncl(1+Math.pow(2, newCidr-oldCidr-1),subnetCount)
-    rng = Math.random()
-    if (rng<0.5) rngSubnetCount = subnetCount
-
-
-    return {oldCidr: oldCidr, newCidr:newCidr, rngSubCount:rngSubnetCount}
-
-}
-
-function getRngIPv6():string{
+function getRandomIPv6():string{
     const randomBlock =()=> "XXXX:".replace(/X/g, ()=>{return "0123456789ABCDEF".charAt(getRandomIntIncl(0,15))})
     
     let rng = Math.random()
@@ -172,11 +127,32 @@ function getRngIPv6():string{
     return "fe80::"
 }
 
+function randomizeCidrs(){
+    let rng = Math.random()
+    let difference  = undefined
+    let newCidr     = undefined
+    if      (rng <0.2) difference = 1
+    else if (rng <0.4) difference = 2
+    else if (rng <0.6) difference = 3
+    else if (rng <0.8) difference = 4
+    else difference = getRandomIntIncl(5,10)
+    
+    rng = Math.random()
+    if      (rng <0.2) newCidr=64
+    else if (rng <0.6) newCidr=16
+    else if (rng <0.8) newCidr=32
+    else if (rng <0.4) newCidr=30
+    else newCidr = getRandomIntIncl(16,64)
+    let  oldCidr = newCidr-difference
 
+    // get random subnetCount for game: (by design of above ranges this must not overflow!)
+    rng = Math.random()
+    let subnetCount = Math.pow(2, newCidr-oldCidr)
+    let rngSubnetCount = getRandomIntIncl(1+Math.pow(2, newCidr-oldCidr-1),subnetCount)
+    if (rng<0.5) rngSubnetCount = subnetCount
 
-
-
-
+    return {oldCidr: oldCidr, newCidr:newCidr, rngSubCount:rngSubnetCount}
+}
 
 
 

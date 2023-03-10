@@ -1,10 +1,4 @@
-
-/* 
-*
-*   CALCULATING DATA AND FORMATING IT:
-*
-*/
-
+// wanted to write this cleaner/smaller when doing the Ip-Calculator, not used for the ip-games
 
 export type SubnetData = {
     subnet: string;
@@ -99,7 +93,9 @@ function calcSubnetsFast(ip:string, oldCidr:number, newCidr:number, cutoff:numbe
 }
 
 
-/* original calc -> crashes and gets slow so we calculate only a part instead */
+/* original calc, probably came from stackoverflow or someplace
+-> cant handle big subnets, so we calculate only a part instead
+but its easier to grasp when minmial so we keep it              */
 function deprec_CalculationSubnets(ip:string, oldCidr:number, newCidr:number) {
     let newSubnets = []
     let ipNum = (ip.split(".").map(str => parseInt(str))).reduce((acc, x) => (acc << 8) + x)
