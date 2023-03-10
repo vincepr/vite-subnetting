@@ -121,9 +121,9 @@ function getRandomIPv6():string{
     
     let rng = Math.random()
     if (rng<0.2) return "fe80:c08::"
-    if (rng<0.4) return "fe80:"+randomBlock()+":"
-    if (rng<0.6) return "2001" +randomBlock()+randomBlock()+":"
-    if (rng<0.8) return "2001" +randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()
+    if (rng<0.4) return "fe80:" +randomBlock()+":"
+    if (rng<0.6) return "2001:" +randomBlock()+randomBlock()+":"
+    if (rng<0.8) return "2001:" +randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()+randomBlock()
     return "fe80::"
 }
 
