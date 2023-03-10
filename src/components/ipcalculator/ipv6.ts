@@ -24,7 +24,7 @@ export default function getSubnetData(ip:string, oldCidr:number, newCidr:number)
 
 
 // isValid-check ipv6-addr must be done before!
-function stringToHalfSubnet(str:string):HalfIP{
+export function stringToHalfSubnet(str:string):HalfIP{
     const maxlen = 8;      // length of the full ip in required blocks
     // removing the :: short-form if it exists:
     let ip : string[] = []
