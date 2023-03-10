@@ -69,8 +69,8 @@ const QuestionsWithSubmitButton = (props: SubnetsDataProps) => {
     }
     return (
         <div>
+            <button onClick={submitAnswers}>Submit Answers</button>
             {props.data.map((subnet, index)=>{return <DrawQuestions key ={index} data={subnet} isAnswerVisible={isShowResultsVisible} submitAnswers={submitAnswers}/>})}
-            <button onClick={submitAnswers}>Check Answers</button>
         </div>
     )
 }

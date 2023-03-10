@@ -184,9 +184,9 @@ function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
         </h4>
         <div style={{display:"flex", flexDirection: "row", alignItems: "stretch"}}>
             <div style={{flex:1}}><b>Nr</b></div>
-            <div style={{flex:2}}><b>Subnetze</b></div>
-            <div style={{flex:2}}><b>Hosts</b></div>
-            <div style={{flex:1}}><b>BroadcastAddr</b></div>
+            <div style={{flex:3}}><b>Subnetze</b></div>
+            <div style={{flex:3}}><b>Hosts</b></div>
+            <div style={{flex:1, textAlign:"right"}}><b>BroadcastAddr</b></div>
         </div>
         {subs.map(sub=>oneSubnet(sub))}
     </>)
@@ -197,9 +197,9 @@ function DrawSubnets({subnets:subs}:{subnets:SubnetData[]}){
         return (
         <div key={s.subnet} style={{display:"flex", flexDirection: "row", alignItems: "stretch"}}>
             <div style={{flex:1}}> {s.nthSubnet}</div>
-            <div style={{flex:2}}>{s.subnet+" / "+s.cidr}</div>
-            <div style={{flex:2}}>{s.firstHost+" - "+s.lastHost}</div>
-            <div style={{flex:1}}>{s.broadcast}</div>
+            <div style={{flex:3}}>{s.subnet+" / "+s.cidr}</div>
+            <div style={{flex:3}}>{s.firstHost+" - "+s.lastHost}</div>
+            <div style={{flex:1, textAlign:"right"}}>{s.broadcast}</div>
         </div>)
     }
 }
